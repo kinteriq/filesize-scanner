@@ -22,8 +22,7 @@ l=*LIBRARY*                   | available libraries : *audio*, *video*, *documen
 
         python3 filesize_scanner.py ~/Desktop/ e=mp4,mp3 3 -r
 
-_command will print out **three** largest **"mp4"**, **"mp3"** files and
-their sizes, found in **"~/Desktop/"** directory and
-**all its subdirectories**_
+_The command will print out **three** largest **"mp4"**, **"mp3"** files
+and their sizes, found in **"~/Desktop/"** directory and **all its subdirectories**_
 
 ---
