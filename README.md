@@ -13,10 +13,13 @@ Argument                      | Description
 --help                        | see documentation
 *DIRECTORY*                   | __default__ : current directory
 e=*EXTENSION*                 | __default__ : all extensions
-e=*EXTENSION_1,EXTENSION_2*   | multiple extensions input
+e=-*EXTENSION*\*              | exclude extension
+e=*EXTENSION_1,EXTENSION_2*\* | multiple extensions input
 l=*LIBRARY*                   | available libraries : *audio*, *video*, *documents*
 *NUMBER*                      | print out only *NUMBER* largest files
 -r                            | search all subfolders
+
+\* _the same for libraries_
 
 #### Example:
 

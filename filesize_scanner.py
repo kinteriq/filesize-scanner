@@ -26,7 +26,8 @@ ARGUMENTS:
     --help                        | see documentation
     <DIRECTORY>                   | default : current directory
     e=<EXTENSION>                 | default : all extensions
-    e=<EXTENSION_1,EXTENSION_2...>| multiple extensions input
+    e=-<EXTENSION>                | exclude extension(the same for libraries)
+    e=<EXTENSION_1,EXTENSION_2...>| multiple extensions input(the same for libraries)
     l=<LIBRARY>                   | availible libraries : "audio", "video", "documents"
     <NUMBER>                      | print out only <NUMBER> largest files
     -r                            | search all subfolders
@@ -65,6 +66,14 @@ class Check:
             raise SystemExit(f'There is no "{d}" directory.')
         return d
     
+    def exclusion(e):
+        if e[2:].startswith('-'):
+            e = e[3:].split(',')
+            return (e, True)
+        e = e[2:].split(',')
+        return (e, False)
+
+
     def found(files, directory, ext):
         if not files:
             if ext == set(['']):
@@ -82,7 +91,7 @@ def main():
 
 def _get_args() -> tuple:
     dirname = os.getcwd()
-    extensions = set([''])
+    ext_data = {'extensions': set(['']), 'exclude': False}
     search_subfolders = False
     limit = 0
 
@@ -97,17 +106,21 @@ def _get_args() -> tuple:
         elif re.match(r'^\d+?\.?\d+?$', arg):
             limit = int(float(arg))
         elif arg.startswith('e='):
-            extensions = extensions.union(set(arg[2:].split(',')))
+            ext, exclude = Check.exclusion(arg)
+            ext_data['extensions'] = ext_data['extensions'].union(ext)
+            ext_data['exclude'] = exclude
         elif arg.startswith('l='):
-            libraries = arg[2:].split(',')
+            libraries, exclude = Check.exclusion(arg)
             for l in libraries:
                 Check.library_name(l)
-                extensions = extensions.union(_LIBRARY[l])
+                ext_data['extensions'] = ext_data['extensions'].union(_LIBRARY[l])
+                ext_data['exclude'] = exclude
         else:
             dirname = Check.directory(arg)
-        if len(extensions) > 1 and '' in extensions:
-            extensions.remove('')
-    return dirname, extensions, search_subfolders, limit
+        if (len(ext_data['extensions']) > 1 and
+            '' in ext_data['extensions']):
+            ext_data['extensions'].remove('')
+    return dirname, ext_data, search_subfolders, limit
 
 
 def helper():
@@ -122,7 +135,7 @@ def helper():
         raise SystemExit()
 
 
-def get_all_files(dirname, extensions, search_subfolders: bool) -> list:
+def get_all_files(dirname, ext_data, search_subfolders: bool) -> list:
     '''
     :return: list of tuples
              [ (filesize, filepath), ... ]
@@ -132,24 +145,29 @@ def get_all_files(dirname, extensions, search_subfolders: bool) -> list:
         for thisDir, *_ in os.walk(dirname):
             if not os.path.isdir(thisDir):
                 continue
-            files_data.extend(search_the_directory(thisDir, extensions))
+            files_data.extend(search_the_directory(thisDir, ext_data))
     else:
-        files_data.extend(search_the_directory(dirname, extensions)) 
-    Check.found(files_data, dirname, extensions)
+        files_data.extend(search_the_directory(dirname, ext_data)) 
+    Check.found(files_data, dirname, ext_data['extensions'])
     files_data.sort(reverse=True)
     return files_data
 
 
-def search_the_directory(dirname, extensions) -> list:
+def search_the_directory(dirname, ext_data) -> list:
     '''
     :return: list of tuples
              [ (filesize, filepath), ... ]
     '''
-    found_files = []
+    extensions = ext_data['extensions']
+    exclude = ext_data['exclude']
+    found_files = set()
     for file in os.listdir(dirname):
-        for ext in extensions:
-            if file.endswith(ext):
-                found_files.append(os.path.join(dirname, file))
+        e = file.split('.')[-1]
+        if not exclude and (e in extensions or extensions == {''}):
+            found_files.add(os.path.join(dirname, file))
+            continue
+        elif exclude and e not in extensions:
+            found_files.add(os.path.join(dirname, file))
     sizes_with_paths = retrieve_sizes(found_files)
     return sizes_with_paths
 
