@@ -53,15 +53,10 @@ _SIZE_INDEX, _NAME_INDEX = 0, 1
 
 
 class Check:
-    def extensions(e):
-        if not e:
-            raise SystemExit(
-                'There should be at least one valid extension.'
-            )
-
     def library_name(name):
         if name not in _LIBRARY:
-            raise SystemExit(f'Check the spelling: {name}')
+            raise SystemExit('Availible libraries: ' +\
+                ', '.join(list(_LIBRARY.keys())))
     
     def directory(d):
         if d.startswith('~'):
@@ -102,14 +97,16 @@ def _get_args() -> tuple:
         elif re.match(r'^\d+?\.?\d+?$', arg):
             limit = int(float(arg))
         elif arg.startswith('e='):
-            extensions = set(arg[2:].split(','))
-            Check.extensions(extensions)
+            extensions = extensions.union(set(arg[2:].split(',')))
         elif arg.startswith('l='):
-            Check.library_name(arg[2:])
-            extensions = _LIBRARY[arg[2:]]
+            libraries = arg[2:].split(',')
+            for l in libraries:
+                Check.library_name(l)
+                extensions = extensions.union(_LIBRARY[l])
         else:
             dirname = Check.directory(arg)
-
+        if len(extensions) > 1 and '' in extensions:
+            extensions.remove('')
     return dirname, extensions, search_subfolders, limit
 
 
