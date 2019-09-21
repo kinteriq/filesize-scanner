@@ -169,11 +169,13 @@ def pretty_all_print(files_data, limit: int) -> None:
     :param: files_data -- list of tuples
                           [ (filesize, filepath), ... ]
     '''
-    top_msg = [f'FOUND {len(files_data)} FILES; ',
-              'THE OVERALL SIZE IS ',
-              f'{convert_bytes(sum([data[_SIZE_INDEX] for data in files_data]))}.']
+    converted_bytes = convert_bytes(
+        sum([data[_SIZE_INDEX] for data in files_data])
+    )
+    top_msg = f'FOUND {len(files_data)} FILES; ' +\
+        'THE OVERALL SIZE IS ' + converted_bytes + '.'
     divider = '=' * len(top_msg)
-    print(divider + '\n' + ''.join(top_msg) + '\n' + divider)
+    print(divider + '\n' + top_msg + '\n' + divider)
 
     if limit:
         files_data = files_data[:limit]
