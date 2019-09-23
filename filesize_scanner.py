@@ -52,6 +52,9 @@ _LIBRARY = dict(audio={'mp3', 'flac'},
                 documents={'txt', 'doc', 'pdf'})
 _SIZE_INDEX, _NAME_INDEX = 0, 1
 
+# bunch of lines to be printed out at one go
+PRINTABLE = 25
+
 
 class Check:
     def library_name(name):
@@ -197,8 +200,15 @@ def pretty_all_print(files_data, limit: int) -> None:
 
     if limit:
         files_data = files_data[:limit]
-    for file_i in files_data:
-        pretty_single_print(file_i)
+    beg, end = 0, PRINTABLE
+    while beg < len(files_data):
+        for file_i in files_data[beg:end]:
+            pretty_single_print(file_i)
+        if input('More? (y) ') != 'y':
+            break
+        beg += PRINTABLE
+        end += PRINTABLE
+    print('-- Reached the end.')
 
 
 def pretty_single_print(files_data: tuple) -> None:
