@@ -41,9 +41,13 @@ EXAMPLE:
 their sizes, found in '~/Desktop/' directory and
 all its subdirectories.
 """
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import os
 import re
+import stat
 import sys
+import time
 
 
 _KB = 1024
@@ -54,6 +58,13 @@ _SIZE_INDEX, _NAME_INDEX = 0, 1
 
 # bunch of lines to be printed out at one go
 PRINTABLE = 25
+
+# consider files as useless if not accessed in this period of time
+FILES_NOT_USED = {
+    'days': 0,
+    'months': 3,
+    'years': 0,
+}
 
 
 class Check:
@@ -76,7 +87,6 @@ class Check:
         e = e[2:].split(',')
         return (e, False)
 
-
     def found(files, directory, ext):
         if not files:
             if ext == set(['']):
@@ -84,6 +94,19 @@ class Check:
             raise SystemExit(
                 f'No files in "{directory}" with {ext} extension(s).'
             )
+    
+    def useless_file(path):     # TODO: all platforms
+        """
+        Check when the file was last opened;
+            returns True if more time had passed
+            than specified in FILES_NOT_USED.
+        """
+        today = datetime.today()
+        delta = today - relativedelta(**FILES_NOT_USED)
+        last_modified = os.stat(path)[stat.ST_ATIME]
+        if last_modified < time.mktime(delta.timetuple()):
+            return True
+        return False
 
 
 def main():
@@ -204,8 +227,9 @@ def pretty_all_print(files_data, limit: int) -> None:
     while beg < len(files_data):
         for file_i in files_data[beg:end]:
             pretty_single_print(file_i)
-        if input('More? (y) ') != 'y':
-            break
+        if limit < end or input('\nMore? (y) ') != 'y':
+            raise SystemExit('-- Exit.')
+        print()
         beg += PRINTABLE
         end += PRINTABLE
     print('-- Reached the end.')
