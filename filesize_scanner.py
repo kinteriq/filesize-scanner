@@ -62,7 +62,7 @@ PRINTABLE = 25
 # consider files as useless if not accessed in this period of time
 FILES_NOT_USED = {
     'days': 0,
-    'months': 3,
+    'months': 1,
     'years': 0,
 }
 
@@ -119,7 +119,7 @@ def _get_args() -> tuple:
     dirname = os.getcwd()
     ext_data = {'extensions': set(['']), 'exclude': False}
     search_subfolders = False
-    limit = 0
+    limit = -1
 
     args = sys.argv
 
@@ -129,7 +129,7 @@ def _get_args() -> tuple:
     for arg in args[1:]:
         if '-r' == arg:
             search_subfolders = True
-        elif re.match(r'^\d+?\.?\d+?$', arg):
+        elif re.match(r'^\d+?\.?\d*?$', arg):
             limit = int(float(arg))
         elif arg.startswith('e='):
             ext, exclude = Check.exclusion(arg)
@@ -221,13 +221,13 @@ def pretty_all_print(files_data, limit: int) -> None:
     divider = '=' * len(top_msg)
     print(divider + '\n' + top_msg + '\n' + divider)
 
-    if limit:
+    if limit > -1:
         files_data = files_data[:limit]
     beg, end = 0, PRINTABLE
-    while beg < len(files_data):
+    while beg <= len(files_data):
         for file_i in files_data[beg:end]:
             pretty_single_print(file_i)
-        if limit < end or input('\nMore? (y) ') != 'y':
+        if (limit > -1 and limit <= end) or input('\nMore? (y) ') != 'y':
             raise SystemExit('-- Exit.')
         print()
         beg += PRINTABLE

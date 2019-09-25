@@ -7,7 +7,7 @@ from unittest import mock
 import filesize_scanner
 from filesize_scanner import (_get_args, helper,
     retrieve_sizes, get_all_files, _LIBRARY,
-    search_the_directory)
+    search_the_directory, main)
 
 
 @pytest.fixture
@@ -39,9 +39,17 @@ def test_args_float_limit_number(monkeypatch):
     assert _get_args() == expecting
 
 
+def test_args_int_limit_number(monkeypatch):
+    expecting = (os.getcwd(), {'extensions': {''}, 'exclude': False},
+        False, 1)
+    args = ['filesize_scanner.py', '1']
+    monkeypatch.setattr(sys, 'argv', args)
+    assert _get_args() == expecting
+
+
 def test_args_any_extension(monkeypatch, fake_dir):
     expecting = (fake_dir, {'extensions': {''}, 'exclude': False},
-        False, 0)
+        False, -1)
     args = ['filesize_scanner.py', fake_dir]
     monkeypatch.setattr(sys, 'argv', args)
     assert _get_args() == expecting
@@ -49,7 +57,7 @@ def test_args_any_extension(monkeypatch, fake_dir):
 
 def test_args_subfolders(monkeypatch, fake_dir):
     expecting = (fake_dir, {'extensions': {''}, 'exclude': False},
-        True, 0)
+        True, -1)
     args = ['filesize_scanner.py', fake_dir, '-r']
     monkeypatch.setattr(sys, 'argv', args)
     assert _get_args() == expecting
@@ -67,7 +75,7 @@ def test_args_wrong_directory(monkeypatch):
 
 def test_args_no_extension(monkeypatch, fake_dir):
     expecting = (fake_dir, {'extensions': {''}, 'exclude': False},
-        False, 0)
+        False, -1)
     args = ['filesize_scanner.py', fake_dir, 'e=']
     monkeypatch.setattr(sys, 'argv', args)
     assert _get_args() == expecting
@@ -88,7 +96,7 @@ def test_args_several_libraries(monkeypatch, fake_dir):
     ext = set(_LIBRARY['video'])
     ext = ext.union(set(_LIBRARY['audio']))
     expecting = (fake_dir, {'extensions': ext, 'exclude': False},
-        False, 0)
+        False, -1)
     monkeypatch.setattr(sys, 'argv', args)
     assert _get_args() == expecting
 
@@ -98,7 +106,7 @@ def test_args_library_with_extensions(monkeypatch, fake_dir):
     ext = set(_LIBRARY['video'])
     ext.add('mp3')
     expecting = (fake_dir, {'extensions': ext, 'exclude': False},
-        False, 0)
+        False, -1)
     monkeypatch.setattr(sys, 'argv', args)
     assert _get_args() == expecting
 
@@ -107,7 +115,7 @@ def test_args_exclude_extensions(monkeypatch, fake_dir):
     args = ['filesize_scanner.py', fake_dir, 'e=-mp3,mp4']
     expecting = (fake_dir, 
         {'extensions': {'mp3', 'mp4'}, 'exclude': True},
-        False, 0)
+        False, -1)
     monkeypatch.setattr(sys, 'argv', args)
     assert _get_args() == expecting
 
@@ -117,7 +125,7 @@ def test_args_exclude_libraries(monkeypatch, fake_dir):
     ext = set(_LIBRARY['audio'])
     ext = ext.union(_LIBRARY['video'])
     expecting = (fake_dir, {'extensions': ext, 'exclude': True},
-        False, 0)
+        False, -1)
     monkeypatch.setattr(sys, 'argv', args)
     assert _get_args() == expecting
 
@@ -126,7 +134,7 @@ def test_args_exclude_libraries(monkeypatch, fake_dir):
 def test_args_exclude_include(monkeypatch, fake_dir):
     args = ['filesize_scanner.py', fake_dir, 'l=-audio,video', 'e=mp3']
     expecting = (fake_dir, {'extensions': {'mp3'}, 'exclude': False},
-        False, 0)
+        False, -1)
     monkeypatch.setattr(sys, 'argv', args)
     assert _get_args() == expecting
 
@@ -139,7 +147,7 @@ def test_args_valid_helper():
             assert mock_out.get_value() == expecting
 
 
-def test_check_not_found(monkeypatch, fake_dir):
+def test_check_not_found(fake_dir):
     expecting = f'No files in "{fake_dir}" with any extension(s).'
     args = ['filesize_scanner.py', fake_dir]
     with pytest.raises(SystemExit) as e:
@@ -148,7 +156,7 @@ def test_check_not_found(monkeypatch, fake_dir):
     assert expecting in e.exconly()
 
 
-def test_check_found_files(monkeypatch, fake_files):
+def test_check_found_files(fake_files):
     path = os.path.split(fake_files[0])[0]
     expecting = list(
         map(lambda x: (os.path.getsize(x), x), fake_files)
@@ -178,3 +186,25 @@ def test_search_dir(fake_files):
     result = search_the_directory(path, {'extensions': {'txt'},
                                          'exclude': False})
     assert expecting == result
+
+
+def test_limit_is_zero(monkeypatch, fake_files):
+    """
+    If limit == 0: user should see the quantity of files and
+        their overall size without a list of actual filenames.
+    """
+    path = os.path.split(fake_files[0])[0]
+    readable_result = 'FOUND 3 FILES; THE OVERALL SIZE IS 0 Bytes.'
+    divider = '=' * len(readable_result) + '\n'
+    expecting = divider + readable_result + '\n' + divider
+    args = lambda: (path, {'extensions': {''}, 'exclude': False},
+        False, 0)
+    monkeypatch.setattr(filesize_scanner, '_get_args', args)
+    with mock.patch('sys.stdout', new=StringIO()) as mock_out:
+        with pytest.raises(SystemExit) as e:
+            answer = StringIO('y')
+            monkeypatch.setattr('sys.stdin', answer)
+            main()
+            assert '-- Exit.' in e.exconly()
+        assert expecting == mock_out.getvalue()
+       
