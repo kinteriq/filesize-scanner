@@ -169,8 +169,8 @@ def get_all_files(dirname, ext_data, search_subfolders: bool) -> list:
     files_data = []
     if search_subfolders:
         for thisDir, *_ in os.walk(dirname):
-            if not os.path.isdir(thisDir):
-                continue
+            # if not os.path.isdir(thisDir):
+            #     continue
             files_data.extend(search_the_directory(thisDir, ext_data))
     else:
         files_data.extend(search_the_directory(dirname, ext_data)) 
@@ -184,16 +184,19 @@ def search_the_directory(dirname, ext_data) -> list:
     :return: list of tuples
              [ (filesize, filepath), ... ]
     '''
-    extensions = ext_data['extensions']
     exclude = ext_data['exclude']
+    if exclude:
+        excluded = ext_data['extensions']
+    else:
+        extensions = ext_data['extensions']
     sizes_with_paths =[]
     for file in os.listdir(dirname):
-        e = file.split('.')[-1]
+        ext = file.split('.')[-1]
         filepath = os.path.join(dirname, file)
-        if (not exclude and (e in extensions or extensions == {''})
+        if (not exclude and (ext in extensions or extensions == {''})
             and os.path.isfile(filepath)):
             sizes_with_paths.append((os.path.getsize(filepath), filepath))
-        elif exclude and e not in extensions and os.path.isfile(filepath):
+        elif exclude and ext not in excluded and os.path.isfile(filepath):
             sizes_with_paths.append((os.path.getsize(filepath), filepath))
     return sizes_with_paths
 
