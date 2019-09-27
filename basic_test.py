@@ -1,22 +1,28 @@
 from io import StringIO
 import os
 import pytest
+import shutil
 import sys
 from unittest import mock
 
 import filesize_scanner
-from filesize_scanner import (_get_args, helper,
-    retrieve_sizes, get_all_files, _LIBRARY,
+from filesize_scanner import (_get_args, helper, get_all_files, _LIBRARY,
     search_the_directory, main)
 
 
 @pytest.fixture
 def fake_dir():
     dirname = 'test dir -r'
-    os.mkdir(dirname)
+    try:
+        os.mkdir(dirname)
+    except FileExistsError:
+        shutil.rmtree(dirname)
     dirname = os.path.abspath(dirname)
     yield dirname
-    os.rmdir(dirname)
+    try:
+        shutil.rmtree(dirname)
+    except FileNotFoundError:
+        pass
 
 
 @pytest.fixture
@@ -167,11 +173,6 @@ def test_check_found_files(fake_files):
     assert sorted(expecting, reverse=True) == result
 
 
-def test_retrieve_sizes(fake_files):
-    expecting = list(map(lambda x: (os.path.getsize(x), x), fake_files))
-    assert retrieve_sizes(fake_files) == expecting
-
-
 def test_search_dir_exclude_extensions(fake_files):
     path = os.path.split(fake_files[0])[0]
     expecting = [(os.path.getsize(fake_files[0]), fake_files[0])]
@@ -184,6 +185,15 @@ def test_search_dir(fake_files):
     path = os.path.split(fake_files[0])[0]
     expecting = [(os.path.getsize(fake_files[0]), fake_files[0])]
     result = search_the_directory(path, {'extensions': {'txt'},
+                                         'exclude': False})
+    assert expecting == result
+
+
+def test_search_dir_without_subdir(fake_files):
+    path = os.path.split(fake_files[0])[0]
+    os.mkdir(os.path.join(path, 'sub_dir'))
+    expecting = list(map(lambda x: (os.path.getsize(x), x), fake_files))
+    result = search_the_directory(path, {'extensions': {''},
                                          'exclude': False})
     assert expecting == result
 

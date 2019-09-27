@@ -186,25 +186,15 @@ def search_the_directory(dirname, ext_data) -> list:
     '''
     extensions = ext_data['extensions']
     exclude = ext_data['exclude']
-    found_files = set()
+    sizes_with_paths =[]
     for file in os.listdir(dirname):
         e = file.split('.')[-1]
-        if not exclude and (e in extensions or extensions == {''}):
-            found_files.add(os.path.join(dirname, file))
-            continue
-        elif exclude and e not in extensions:
-            found_files.add(os.path.join(dirname, file))
-    sizes_with_paths = retrieve_sizes(found_files)
-    return sizes_with_paths
-
-
-def retrieve_sizes(files: list) -> list:
-    sizes_with_paths = []
-    for filepath in files:
-        if not os.path.isfile(filepath):
-            continue
-        filesize = os.path.getsize(filepath)
-        sizes_with_paths.append((filesize, filepath))
+        filepath = os.path.join(dirname, file)
+        if (not exclude and (e in extensions or extensions == {''})
+            and os.path.isfile(filepath)):
+            sizes_with_paths.append((os.path.getsize(filepath), filepath))
+        elif exclude and e not in extensions and os.path.isfile(filepath):
+            sizes_with_paths.append((os.path.getsize(filepath), filepath))
     return sizes_with_paths
 
 
