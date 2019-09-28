@@ -206,11 +206,11 @@ def pretty_all_print(files_data, limit: int) -> None:
     :param: files_data -- list of tuples
                           [ (filesize, filepath), ... ]
     '''
-    converted_bytes = convert_bytes(
+    size = convert_bytes(
         sum([data[_SIZE_INDEX] for data in files_data])
     )
-    top_msg = f'FOUND {len(files_data)} FILES; ' +\
-        'THE OVERALL SIZE IS ' + converted_bytes + '.'
+    files_num = len(files_data)
+    top_msg = f'FOUND {files_num} FILES; THE OVERALL SIZE IS {size}.'
     divider = '=' * len(top_msg)
     print(divider + '\n' + top_msg + '\n' + divider)
 
@@ -220,7 +220,9 @@ def pretty_all_print(files_data, limit: int) -> None:
     while beg <= len(files_data):
         for file_i in files_data[beg:end]:
             pretty_single_print(file_i)
-        if (limit > -1 and limit <= end) or input('\nMore? (y) ') != 'y':
+        if limit >= files_num or limit == -1 and files_num <= end:
+            break
+        if limit < files_num or input('\nMore? (y) ') != 'y':
             raise SystemExit('-- Exit.')
         print()
         beg += PRINTABLE
