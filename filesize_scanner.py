@@ -28,7 +28,7 @@ ARGUMENTS:
     e=<EXTENSION>                 | default : all extensions
     e=-<EXTENSION>                | exclude extension(the same for libraries)
     e=<EXTENSION_1,EXTENSION_2...>| multiple extensions input(the same for libraries)
-    l=<LIBRARY>                   | availible libraries : "audio", "video", "documents"
+    l=<LIBRARY>                   | initial libraries : "audio", "video", "documents"
     <NUMBER>                      | print out only <NUMBER> largest files
     -r                            | search all subfolders
 
@@ -51,10 +51,12 @@ import time
 
 
 _KB = 1024
-_LIBRARY = dict(audio={'mp3', 'flac'},
-                video={'mkv', 'mp4', 'avi', 'webpm', 'mov'},
-                documents={'txt', 'doc', 'pdf'})
 _SIZE_INDEX, _NAME_INDEX = 0, 1
+
+# add extensions to simplify search
+LIBRARY = dict(audio={'mp3', 'flac'},
+               video={'mkv', 'mp4', 'avi', 'webpm', 'mov'},
+               documents={'txt', 'doc', 'pdf'})
 
 # bunch of lines to be printed out at one go
 PRINTABLE = 25
@@ -69,9 +71,9 @@ FILES_NOT_USED = {
 
 class Check:
     def library_name(name):
-        if name not in _LIBRARY:
+        if name not in LIBRARY:
             raise SystemExit('Availible libraries: ' +\
-                ', '.join(list(_LIBRARY.keys())))
+                ', '.join(list(LIBRARY.keys())))
     
     def directory(d):
         if d.startswith('~'):
@@ -139,7 +141,7 @@ def _get_args() -> tuple:
             libraries, exclude = Check.exclusion(arg)
             for l in libraries:
                 Check.library_name(l)
-                ext_data['extensions'] = ext_data['extensions'].union(_LIBRARY[l])
+                ext_data['extensions'] = ext_data['extensions'].union(LIBRARY[l])
                 ext_data['exclude'] = exclude
         else:
             dirname = Check.directory(arg)
@@ -169,8 +171,6 @@ def get_all_files(dirname, ext_data, search_subfolders: bool) -> list:
     files_data = []
     if search_subfolders:
         for thisDir, *_ in os.walk(dirname):
-            # if not os.path.isdir(thisDir):
-            #     continue
             files_data.extend(search_the_directory(thisDir, ext_data))
     else:
         files_data.extend(search_the_directory(dirname, ext_data)) 

@@ -1,31 +1,34 @@
 # filesize-scanner
 
 
-#### Description:
+### Description:
 
 Scans the directory for files with specified
 extensions and list their sizes and names.
 
-#### Arguments:
+### Arguments:
 
 Argument                      | Description
 ------------------------------|------------------
 --help                        | see documentation
-*DIRECTORY*                   | __default__ : current directory
-e=*EXTENSION*                 | __default__ : all extensions
-e=-*EXTENSION*\*              | exclude extension
-e=*EXTENSION_1,EXTENSION_2*\* | multiple extensions input
-l=*LIBRARY*                   | available libraries : *audio*, *video*, *documents*
-*NUMBER*                      | print out only *NUMBER* largest files
+*directory*                   | __default__ : current directory
+e=*extension*                 | __default__ : all extensions
+e=-*extension*\*              | exclude extension
+e=*extension_1,extension_2*\* | multiple extensions input
+l=*library*\*\*               | initial libraries : *audio*, *video*, *documents*
+*number*                      | print out only *number* largest files
 -r                            | search all subfolders
 
-\* _the same for libraries_
-
-#### Example:
+### Example:
 
         python3 filesize_scanner.py ~/Desktop/ e=mp4,mp3 3 -r
 
-_The command will print out **three** largest **"mp4"**, **"mp3"** files
-and their sizes, found in **"~/Desktop/"** directory and **all its subdirectories**_
+*The command will print out __three__ largest __"mp4"__, __"mp3"__ files
+and their sizes, found in __"~/Desktop/"__ directory and __all its subdirectories__.*
 
 ---
+
+\* _the same for libraries_
+
+\*\* *to create your own libraries or edit existing ones: manipulate __LIBRARY__
+variable inside __filesize_scanner.py__*

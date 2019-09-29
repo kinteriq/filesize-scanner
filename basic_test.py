@@ -6,7 +6,7 @@ import sys
 from unittest import mock
 
 import filesize_scanner
-from filesize_scanner import (_get_args, helper, get_all_files, _LIBRARY,
+from filesize_scanner import (_get_args, helper, get_all_files, LIBRARY,
     search_the_directory, main)
 
 
@@ -90,7 +90,7 @@ def test_args_no_extension(monkeypatch, fake_dir):
 def test_args_wrong_library(monkeypatch, fake_dir):
     args = ['filesize_scanner.py', fake_dir, 'l=videos']
     expecting = 'Availible libraries: ' +\
-        ', '.join(list(_LIBRARY.keys()))
+        ', '.join(list(LIBRARY.keys()))
     monkeypatch.setattr(sys, 'argv', args)
     with pytest.raises(SystemExit) as e:
         _get_args()
@@ -99,8 +99,8 @@ def test_args_wrong_library(monkeypatch, fake_dir):
 
 def test_args_several_libraries(monkeypatch, fake_dir):
     args = ['filesize_scanner.py', fake_dir, 'l=video,audio']
-    ext = set(_LIBRARY['video'])
-    ext = ext.union(set(_LIBRARY['audio']))
+    ext = set(LIBRARY['video'])
+    ext = ext.union(set(LIBRARY['audio']))
     expecting = (fake_dir, {'extensions': ext, 'exclude': False},
         False, -1)
     monkeypatch.setattr(sys, 'argv', args)
@@ -109,7 +109,7 @@ def test_args_several_libraries(monkeypatch, fake_dir):
 
 def test_args_library_with_extensions(monkeypatch, fake_dir):
     args = ['filesize_scanner.py', fake_dir, 'l=video', 'e=mp3']
-    ext = set(_LIBRARY['video'])
+    ext = set(LIBRARY['video'])
     ext.add('mp3')
     expecting = (fake_dir, {'extensions': ext, 'exclude': False},
         False, -1)
@@ -128,8 +128,8 @@ def test_args_exclude_extensions(monkeypatch, fake_dir):
 
 def test_args_exclude_libraries(monkeypatch, fake_dir):
     args = ['filesize_scanner.py', fake_dir, 'l=-audio,video']
-    ext = set(_LIBRARY['audio'])
-    ext = ext.union(_LIBRARY['video'])
+    ext = set(LIBRARY['audio'])
+    ext = ext.union(LIBRARY['video'])
     expecting = (fake_dir, {'extensions': ext, 'exclude': True},
         False, -1)
     monkeypatch.setattr(sys, 'argv', args)
@@ -217,4 +217,9 @@ def test_limit_is_zero(monkeypatch, fake_files):
             main()
             assert '-- Exit.' in e.exconly()
         assert expecting == mock_out.getvalue()
-       
+    
+
+@pytest.mark.xfail(reason='WIP')
+def test_find_useless_files(monkeypatch, fake_files):
+    # TODO: --useless -> see files list
+    assert False
