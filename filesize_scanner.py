@@ -112,43 +112,48 @@ class Check:
 
 
 def main():
-    *params, limit = _get_args()
-    files_info = get_all_files(*params)
-    pretty_all_print(files_info, limit)
+    dirname, extensions, params = _get_args()
+    files_info = get_all_files(dirname, extensions, params)
+    pretty_all_print(files_info, params['limit'])
 
 
 def _get_args() -> tuple:
     dirname = os.getcwd()
-    ext_data = {'extensions': set(['']), 'exclude': False}
-    search_subfolders = False
-    limit = -1
+    extensions = set([''])
+    params = {
+        'search_subfolders': False,
+        'exclude': False,
+        'limit': -1,
+        'useless': False,
+    }
 
     args = sys.argv
 
     if '--help' in args:
         helper()
+    if '--useless' in args:
+        params['useless'] = True
+        args.remove('--useless')
 
     for arg in args[1:]:
         if '-r' == arg:
-            search_subfolders = True
+            params['search_subfolders'] = True
         elif re.match(r'^\d+?\.?\d*?$', arg):
-            limit = int(float(arg))
+            params['limit'] = int(float(arg))
         elif arg.startswith('e='):
-            ext, exclude = Check.exclusion(arg)
-            ext_data['extensions'] = ext_data['extensions'].union(ext)
-            ext_data['exclude'] = exclude
+            ext, params['exclude'] = Check.exclusion(arg)
+            extensions = extensions.union(ext)
         elif arg.startswith('l='):
-            libraries, exclude = Check.exclusion(arg)
+            libraries, params['exclude'] = Check.exclusion(arg)
             for l in libraries:
                 Check.library_name(l)
-                ext_data['extensions'] = ext_data['extensions'].union(LIBRARY[l])
-                ext_data['exclude'] = exclude
+                extensions = extensions.union(
+                    LIBRARY[l])
         else:
             dirname = Check.directory(arg)
-        if (len(ext_data['extensions']) > 1 and
-            '' in ext_data['extensions']):
-            ext_data['extensions'].remove('')
-    return dirname, ext_data, search_subfolders, limit
+        if len(extensions) > 1 and '' in extensions:
+            extensions.remove('')
+    return dirname, extensions, params
 
 
 def helper():
@@ -163,41 +168,49 @@ def helper():
         raise SystemExit()
 
 
-def get_all_files(dirname, ext_data, search_subfolders: bool) -> list:
+def find_useless_files():
+    pass
+
+
+def get_all_files(dirname, extensions, params):
     '''
     :return: list of tuples
              [ (filesize, filepath), ... ]
     '''
+    search_subfolders = params['search_subfolders']
     files_data = []
     if search_subfolders:
         for thisDir, *_ in os.walk(dirname):
-            files_data.extend(search_the_directory(thisDir, ext_data))
+            files_data.extend(search_the_directory(
+                thisDir, extensions, params['exclude']))
     else:
-        files_data.extend(search_the_directory(dirname, ext_data)) 
-    Check.found(files_data, dirname, ext_data['extensions'])
+        files_data.extend(search_the_directory(
+            dirname, extensions, params['exclude']))
+    Check.found(files_data, dirname, extensions)
     files_data.sort(reverse=True)
     return files_data
 
 
-def search_the_directory(dirname, ext_data) -> list:
+def search_the_directory(dirname, extensions, exclude=False):
     '''
     :return: list of tuples
              [ (filesize, filepath), ... ]
     '''
-    exclude = ext_data['exclude']
     if exclude:
-        excluded = ext_data['extensions']
+        excluded = extensions
     else:
-        extensions = ext_data['extensions']
+        extensions = extensions
     sizes_with_paths =[]
     for file in os.listdir(dirname):
         ext = file.split('.')[-1]
         filepath = os.path.join(dirname, file)
         if (not exclude and (ext in extensions or extensions == {''})
             and os.path.isfile(filepath)):
-            sizes_with_paths.append((os.path.getsize(filepath), filepath))
+            sizes_with_paths.append(
+                (os.path.getsize(filepath), filepath))
         elif exclude and ext not in excluded and os.path.isfile(filepath):
-            sizes_with_paths.append((os.path.getsize(filepath), filepath))
+            sizes_with_paths.append(
+                (os.path.getsize(filepath), filepath))
     return sizes_with_paths
 
 
