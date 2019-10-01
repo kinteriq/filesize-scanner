@@ -235,7 +235,7 @@ def pretty_all_print(files_data, limit: int) -> None:
             pretty_single_print(file_i)
         if limit >= files_num or limit == -1 and files_num <= end:
             break
-        if limit < files_num or input('\nMore? (y) ') != 'y':
+        if limit < files_num and limit != -1 or input('\nMore? (y) ') != 'y':
             raise SystemExit('-- Exit.')
         print()
         beg += PRINTABLE

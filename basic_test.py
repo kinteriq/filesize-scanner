@@ -245,7 +245,7 @@ def test_limit_is_zero(monkeypatch, fake_files):
         assert expecting == mock_out.getvalue()
     
 
-# @pytest.mark.xfail(reason='WIP')
+@pytest.mark.xfail(reason='WIP')
 def test_find_useless_files(monkeypatch, fake_files):
     # TODO: --useless -> see files list
     path = os.path.split(fake_files[0])[0]
@@ -253,4 +253,4 @@ def test_find_useless_files(monkeypatch, fake_files):
     monkeypatch.setattr('sys.argv', args)
     with mock.patch('sys.stdout', new=StringIO()) as mock_out:
         main()
-        assert mock_out.getvalue()
+        assert not mock_out.getvalue()
