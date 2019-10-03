@@ -127,7 +127,7 @@ def test_args_no_extension(monkeypatch, fake_dir):
 
 def test_args_wrong_library(monkeypatch, fake_dir):
     args = ['filesize_scanner.py', fake_dir, 'l=videos']
-    expecting = 'Availible libraries: ' +\
+    expecting = 'Available libraries: ' +\
         ', '.join(list(LIBRARY.keys()))
     monkeypatch.setattr(sys, 'argv', args)
     with pytest.raises(SystemExit) as e:

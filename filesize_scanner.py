@@ -72,7 +72,7 @@ FILES_NOT_USED = {
 class Check:
     def library_name(name):
         if name not in LIBRARY:
-            raise SystemExit('Availible libraries: ' +\
+            raise SystemExit('Available libraries: ' +\
                 ', '.join(list(LIBRARY.keys())))
     
     def directory(d):
