@@ -41,47 +41,32 @@ EXAMPLE:
 their sizes, found in '~/Desktop/' directory and
 all its subdirectories.
 """
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+from collections import namedtuple
 import os
 import re
-import stat
 import sys
-import time
 
 
-_KB = 1024
-_SIZE_INDEX, _NAME_INDEX = 0, 1
+from config import _KB, LIBRARY, PRINTABLE, FILES_NOT_USED
 
-# add extensions to simplify search
-LIBRARY = dict(audio={'mp3', 'flac'},
-               video={'mkv', 'mp4', 'avi', 'webpm', 'mov'},
-               documents={'txt', 'doc', 'pdf'})
 
-# bunch of lines to be printed out at one go
-PRINTABLE = 25
-
-# consider files as useless if not accessed in this period of time
-FILES_NOT_USED = {
-    'days': 0,
-    'months': 1,
-    'years': 0,
-}
+# _SIZE_INDEX, _NAME_INDEX = 0, 1
+FileData = namedtuple('FileData', ['filesize', 'filepath'])
 
 
 class Check:
     def library_name(name):
         if name not in LIBRARY:
-            raise SystemExit('Available libraries: ' +\
-                ', '.join(list(LIBRARY.keys())))
-    
+            raise SystemExit('Available libraries: ' +
+                             ', '.join(list(LIBRARY.keys())))
+
     def directory(d):
         if d.startswith('~'):
             d = os.path.expanduser('~') + d
         if not os.path.isdir(d):
             raise SystemExit(f'There is no "{d}" directory.')
         return d
-    
+
     def exclusion(e):
         if e[2:].startswith('-'):
             e = e[3:].split(',')
@@ -96,19 +81,6 @@ class Check:
             raise SystemExit(
                 f'No files in "{directory}" with {ext} extension(s).'
             )
-    
-    def useless_file(path):     # TODO: all platforms
-        """
-        Check when the file was last opened;
-            returns True if more time had passed
-            than specified in FILES_NOT_USED.
-        """
-        today = datetime.today()
-        delta = today - relativedelta(**FILES_NOT_USED)
-        last_modified = os.stat(path)[stat.ST_ATIME]
-        if last_modified < time.mktime(delta.timetuple()):
-            return True
-        return False
 
 
 def main():
@@ -124,16 +96,12 @@ def _get_args() -> tuple:
         'search_subfolders': False,
         'exclude': False,
         'limit': -1,
-        'useless': False,
     }
 
     args = sys.argv
 
     if '--help' in args:
         helper()
-    if '--useless' in args:
-        params['useless'] = True
-        args.remove('--useless')
 
     for arg in args[1:]:
         if '-r' == arg:
@@ -157,19 +125,7 @@ def _get_args() -> tuple:
 
 
 def helper():
-    try:
-        import filesize_scanner
-        print(filesize_scanner.__doc__)
-    except ImportError as exc:
-        raise ImportError(
-            'The title of the file should be "filesize_scanner.py".'
-        ) from exc
-    else:
-        raise SystemExit()
-
-
-def find_useless_files():
-    pass
+    sys.exit(__doc__)
 
 
 def get_all_files(dirname, extensions, params):
@@ -200,17 +156,17 @@ def search_the_directory(dirname, extensions, exclude=False):
         excluded = extensions
     else:
         extensions = extensions
-    sizes_with_paths =[]
+    sizes_with_paths = []
     for file in os.listdir(dirname):
         ext = file.split('.')[-1]
         filepath = os.path.join(dirname, file)
         if (not exclude and (ext in extensions or extensions == {''})
-            and os.path.isfile(filepath)):
+                and os.path.isfile(filepath)):
             sizes_with_paths.append(
-                (os.path.getsize(filepath), filepath))
+                FileData(os.path.getsize(filepath), filepath))
         elif exclude and ext not in excluded and os.path.isfile(filepath):
             sizes_with_paths.append(
-                (os.path.getsize(filepath), filepath))
+                FileData(os.path.getsize(filepath), filepath))
     return sizes_with_paths
 
 
@@ -220,7 +176,7 @@ def pretty_all_print(files_data, limit: int) -> None:
                           [ (filesize, filepath), ... ]
     '''
     size = convert_bytes(
-        sum([data[_SIZE_INDEX] for data in files_data])
+        sum([data.filesize for data in files_data])
     )
     files_num = len(files_data)
     top_msg = f'FOUND {files_num} FILES; THE OVERALL SIZE IS {size}.'
@@ -243,9 +199,9 @@ def pretty_all_print(files_data, limit: int) -> None:
     print('-- Reached the end.')
 
 
-def pretty_single_print(files_data: tuple) -> None:
-    filesize = files_data[_SIZE_INDEX]
-    abspath_to_file_name = files_data[_NAME_INDEX]
+def pretty_single_print(file_data: tuple) -> None:
+    filesize = file_data.filesize
+    abspath_to_file_name = file_data.filepath
     print(convert_bytes(filesize) + '\t:\t' + abspath_to_file_name)
 
 

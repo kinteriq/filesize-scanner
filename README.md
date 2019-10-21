@@ -31,4 +31,4 @@ and their sizes, found in __"~/Desktop/"__ directory and __all its subdirectorie
 \* _the same for libraries_
 
 \*\* *to create your own libraries or edit existing ones: manipulate __LIBRARY__
-variable inside __filesize_scanner.py__*
+variable inside __config.py__*
