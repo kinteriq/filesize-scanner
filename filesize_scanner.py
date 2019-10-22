@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 #     This script scans the directory for files with specified extensions
 #     and list their sizes and names.
 
