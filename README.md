@@ -1,12 +1,12 @@
 # filesize-scanner
 
 
-### Description:
+## Description:
 
 Scans the directory for files with specified
 extensions and list their sizes and names.
 
-### Arguments:
+## Arguments:
 
 Argument                      | Description
 ------------------------------|------------------
@@ -19,12 +19,16 @@ l=*library*\*\*               | initial libraries : *audio*, *video*, *documents
 *number*                      | print out only *number* largest files
 -r                            | search all subfolders
 
-### Example:
+## Example:
 
         python3 filesize_scanner.py ~/Desktop/ e=mp4,mp3 3 -r
 
 *The command will print out __three__ largest __"mp4"__, __"mp3"__ files
 and their sizes, found in __"~/Desktop/"__ directory and __all its subdirectories__.*
+
+## Requirements:
+- MacOS/Linux;
+- python3.6 or later;
 
 ---
 
