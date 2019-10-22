@@ -26,6 +26,10 @@ l=*library*\*\*               | initial libraries : *audio*, *video*, *documents
 *The command will print out __three__ largest __"mp4"__, __"mp3"__ files
 and their sizes, found in __"~/Desktop/"__ directory and __all its subdirectories__.*
 
+## Requirements:
+- MacOS/Linux;
+- python3.6 or later;
+
 ---
 
 \* _the same for libraries_
