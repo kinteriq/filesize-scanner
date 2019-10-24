@@ -53,7 +53,6 @@ import sys
 from config import _KB, LIBRARY, PRINTABLE, FILES_NOT_USED
 
 
-# _SIZE_INDEX, _NAME_INDEX = 0, 1
 FileData = namedtuple('FileData', ['filesize', 'filepath'])
 
 
